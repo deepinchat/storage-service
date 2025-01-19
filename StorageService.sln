@@ -10,6 +10,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{8AC27558-73AF-44BC-8CCE-64281AEF374F}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\docker-image-ci.yaml = .github\workflows\docker-image-ci.yaml
+		LICENSE.txt = LICENSE.txt
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
