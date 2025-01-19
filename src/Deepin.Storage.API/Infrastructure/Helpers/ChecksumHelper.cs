@@ -40,6 +40,7 @@ public class ChecksumHelper
 
             crc = ((crc >> 8) ^ table[(crc & 0xFF) ^ (byte)ch]);
         }
+        stream.Position = 0;
         return (~crc).ToString("X8");
     }
 }

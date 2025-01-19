@@ -15,6 +15,7 @@ public class HashHelper
         stream.Position = 0;
         using var sha256 = SHA256.Create();
         var hash = await sha256.ComputeHashAsync(stream, cancellationToken);
+        stream.Position = 0;
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
     }
 }

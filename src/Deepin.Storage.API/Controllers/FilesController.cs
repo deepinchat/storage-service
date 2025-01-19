@@ -1,6 +1,5 @@
 using Deepin.Storage.API.Application.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Deepin.Storage.API.Controllers

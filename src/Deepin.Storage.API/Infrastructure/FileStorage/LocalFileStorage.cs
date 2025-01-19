@@ -4,17 +4,17 @@ using Microsoft.Extensions.Options;
 namespace Deepin.Storage.API.Infrastructure.FileStorage;
 public class LocalFileStorageOptions
 {
-    public required string DataFolder { get; set; }
+    public required string Root { get; set; }
 }
 public class LocalFileStorage(IOptions<LocalFileStorageOptions> options) : IFileStorage
 {
-    private readonly string _dataFolder = options.Value.DataFolder;
+    private readonly string _rootPath = options.Value.Root;
 
     public StorageProvider Provider => StorageProvider.Local;
 
     private string GetFullPath(string relativePath)
     {
-        return Path.Combine(_dataFolder, relativePath);
+        return Path.Combine(_rootPath, relativePath);
     }
     public async Task CreateAsync(FileObject file, Stream stream)
     {
