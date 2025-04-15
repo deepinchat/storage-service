@@ -1,3 +1,4 @@
+using Deepin.Storage.API.Application.Models;
 using Deepin.Storage.API.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +13,22 @@ namespace Deepin.Storage.API.Controllers
         private readonly IFileService _fileService = fileService;
 
         [HttpPost]
-        public async Task<IActionResult> UploadAsync(IFormFile file, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UploadAsync([FromForm] IFormFileCollection files, CancellationToken cancellationToken = default)
         {
-            if (file is null)
+            if (files is null || files.Count == 0)
             {
-                return BadRequest("File is required");
+                return BadRequest("Files are required");
             }
-            await using var stream = file.OpenReadStream();
-            var result = await _fileService.UploadAsync(stream, file.FileName, cancellationToken);
+            var result = new List<FileModel>();
+            foreach (var file in files)
+            {
+                if (file.Length > 0)
+                {
+                    await using var stream = file.OpenReadStream();
+                    var uploadResult = await _fileService.UploadAsync(stream, file.FileName, cancellationToken);
+                    result.Add(uploadResult);
+                }
+            }
             return Ok(result);
         }
 
