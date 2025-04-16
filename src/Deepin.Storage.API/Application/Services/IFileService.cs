@@ -8,4 +8,6 @@ public interface IFileService
     Task<FileModel?> GetByIdAsync(Guid fileId, CancellationToken cancellationToken = default);
     Task<Stream?> GetStreamAsync(Guid fileId, CancellationToken cancellationToken = default);
     Task<FileModel> UploadAsync(Stream stream, string fileName, CancellationToken cancellationToken = default);
+    Task<string?> GetTemporaryDownloadTokenAsync(Guid fileId, DateTime expirationTime, CancellationToken cancellationToken = default);
+    Task<FileModel?> GetByTemporaryDownloadTokenAsync(Guid fileId, string token, CancellationToken cancellationToken = default);
 }

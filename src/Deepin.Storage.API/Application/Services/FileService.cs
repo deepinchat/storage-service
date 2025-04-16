@@ -5,15 +5,17 @@ using Deepin.Storage.API.Infrastructure.Entitites;
 using Deepin.Storage.API.Infrastructure.FileStorage;
 using Deepin.Storage.API.Infrastructure.Helpers;
 using HeyRed.Mime;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Deepin.Storage.API.Application.Services;
 
-public class FileService(IFileStorage fileStorage, IUserContext userContext, StorageDbContext db) : IFileService
+public class FileService(IFileStorage fileStorage, IUserContext userContext, StorageDbContext db, IDataProtectionService dataProtectionService) : IFileService
 {
     private readonly IFileStorage _fileStorage = fileStorage;
     private readonly IUserContext _userContext = userContext;
     private readonly StorageDbContext _db = db;
+    private readonly IDataProtectionService _dataProtectionService = dataProtectionService;
 
     public async Task<FileModel> UploadAsync(Stream stream, string fileName, CancellationToken cancellationToken = default)
     {
@@ -63,6 +65,19 @@ public class FileService(IFileStorage fileStorage, IUserContext userContext, Sto
         }
         return await _fileStorage.GetStreamAsync(file);
     }
+    public async Task<string?> GetTemporaryDownloadTokenAsync(Guid fileId, DateTime expirationTime, CancellationToken cancellationToken = default)
+    {
+        var file = await _db.FileObjects.FirstOrDefaultAsync(f => f.Id == fileId, cancellationToken);
+        if (file is null)
+        {
+            return null;
+        }
+        return _dataProtectionService.Protect(new ProtectedData
+        {
+            Data = fileId.ToString(),
+            ExpiresAt = expirationTime
+        });
+    }
     public async Task<FileModel?> GetByIdAsync(Guid fileId, CancellationToken cancellationToken = default)
     {
         var file = await _db.FileObjects.FirstOrDefaultAsync(f => f.Id == fileId, cancellationToken);
@@ -81,5 +96,15 @@ public class FileService(IFileStorage fileStorage, IUserContext userContext, Sto
     private async Task<string> CalculateChecksumAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         return await Task.FromResult(ChecksumHelper.GetCRC32Checksum(stream, cancellationToken));
+    }
+
+    public async Task<FileModel?> GetByTemporaryDownloadTokenAsync(Guid fileId, string token, CancellationToken cancellationToken = default)
+    {
+        var data = _dataProtectionService.Unprotect(token);
+        if (data is null || data.Data != fileId.ToString() || data.IsExpired)
+        {
+            throw new UnauthorizedAccessException("Invalid token");
+        }
+        return await this.GetByIdAsync(fileId, cancellationToken);
     }
 }

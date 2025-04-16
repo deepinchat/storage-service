@@ -42,6 +42,37 @@ namespace Deepin.Storage.API.Controllers
             }
             return Ok(result);
         }
+        [HttpGet("{id}/download-token")]
+        public async Task<IActionResult> GetTemporaryDownloadTokenAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var file = await _fileService.GetByIdAsync(id, cancellationToken);
+            if (file is null)
+            {
+                return NotFound();
+            }
+            var token = await _fileService.GetTemporaryDownloadTokenAsync(id, DateTime.UtcNow.AddHours(2), cancellationToken);
+            if (token is null)
+            {
+                return NotFound();
+            }
+            return Ok(new { token });
+        }
+        [HttpGet("{id}/download/{token}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> DownloadByTemporaryTokenAsync(Guid id, string token, CancellationToken cancellationToken = default)
+        {
+            var file = await _fileService.GetByTemporaryDownloadTokenAsync(id, token, cancellationToken);
+            if (file is null)
+            {
+                return NotFound();
+            }
+            var stream = await _fileService.GetStreamAsync(id, cancellationToken);
+            if (stream is null)
+            {
+                return NotFound();
+            }
+            return File(stream, file.MimeType, file.Name);
+        }
 
         [HttpGet("{id}/download")]
         public async Task<IActionResult> GetStreamAsync(Guid id, CancellationToken cancellationToken = default)

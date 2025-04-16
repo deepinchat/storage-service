@@ -59,6 +59,7 @@ public static class HostExtensions
                 throw new ArgumentOutOfRangeException(nameof(storageProvider), storageProvider, null);
         }
         services.AddScoped<IFileService, FileService>();
+        services.AddScoped<IDataProtectionService, DataProtectionService>();
         return services;
     }
 }
